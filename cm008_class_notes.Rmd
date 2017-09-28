@@ -212,6 +212,11 @@ gapminder %>%
               n_countries    = length(gdpPercap))
 ```
 
+-summary collapses information in one column (e.g. takes the average of a column)
+-mutate will not collapse a column, rather you can do a progression through the data
+-so in the example below, if we group_by(country), then we can use mutate to go through and calculate the change in pop from year to year
+-also need to use arrange to make sure the data is listed in chronological order
+
 Well, we can also apply `mutate` to each group, too. For example, let's calculate the growth in population since the first year on record _for each country_:
 
 ```{r}
@@ -221,6 +226,9 @@ gapminder %>%
 ```
 
 Notice that `dplyr` has retained the original grouping -- it hasn't pealed back one level of grouping. That's because there's still more than one row for each group!
+
+-you can also use 'lag' to track the change in pop each year, rather than looking at the change since the first year
+
 
 How about growth compared to `1972`?
 
@@ -348,7 +356,7 @@ p1 + labs(x="GDP per capita",
 ggplot(gapminder, aes(gdpPercap, lifeExp)) +
     geom_point(aes(colour=continent),
                alpha=0.2) +
-    scale_colour_discrete("Continents of\n the World")
+    scale_colour_discrete("Continents of\n the World") ##the \n creates a new line, so the legend title is over 2 lines
 ```
 
 - `breaks` (Typically of a continuous scale). Here, you get to specify _where_ along the scale you'd like to display a value. 
@@ -403,14 +411,36 @@ Practice these concepts in the following exercises.
 
 __Exercise 1__: Suppose we want to calculate some quantity for each country in the `gapminder` data set. For each of the following quantities, indicate whether the function is _vectorized_, _aggregate_, or _window_, and use `dplyr` functions to calculate the specified variable.
 
-- The change in population from 1962 to 1972.
-- The population, in billions.
-- The lagged gdpPercap
+- The change in population from 1962 to 1972.= aggregate
+- The population, in billions. = vectorized
+- The lagged gdpPercap = 
     - i.e., the value that appears for 1962 would be the gdpPercap in 1957 (the previous entry).
     - Hint: use the `lag` function, then filter out the `NA`'s created with the `is.na` function.
 
+```{r}
+##The change in population from 1962 to 1972.= aggregate
+gapminder %>%
+        filter(year %in% c(1962,1972)) %>%
+        arrange(year) %>%
+        group_by(country) %>%
+        summarise(popchange = diff(pop))
 
+gapminder %>%
+        group_by(country) %>%
+        summarise(popchange = pop[year==1972]-pop[year==1962])
+```
+```{r}
+## The population, in billions. = vectorized
+gapminder %>%
+       mutate(popbil = pop/1000000000)
+```
 
+```{r}
+##The lagged gdpPercap = 
+    ##- i.e., the value that appears for 1962 would be the gdpPercap in 1957 (the previous entry).
+    ##- Hint: use the `lag` function, then filter out the `NA`'s created with the `is.na` function.
+
+```
 __Exercise 2__: For the `gapminder` dataset, make a spaghetti plot showing the population trend (in millions) over time for each country, facetted by continent. Make as many of the following modifications as you can:
 
 - Colour each line by the log maximum gdpPercap experienced by the country.
